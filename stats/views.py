@@ -8,11 +8,16 @@ import time
 
 def front_page(request):
     data = {}
-    data["first_batch"] = RefreshBatch.objects.order_by("date")[0]
+    data["first_batch"] = _first_batch()
     data["num_batches"] = RefreshBatch.objects.count()
-    data["average_server_count"] = Server.objects.count() / data["num_batches"]
-    data["average_player_count"] = Player.objects.count() / data["num_batches"]
+    data["average_server_count"] = Server.objects.count() / max(1, data["num_batches"])
+    data["average_player_count"] = Player.objects.count() / max(1, data["num_batches"])
     return render(request, "stats/front_page.html", data)
+
+
+def _first_batch():
+    return RefreshBatch.objects.order_by("date").first() or \
+        RefreshBatch(date=datetime.fromtimestamp(0))
 
 
 def engine(request, name):
