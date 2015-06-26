@@ -10,6 +10,10 @@ def engine(request, name):
     return render(request, "stats/engine.html", {"name": name})
 
 
+def about(request):
+    return render(request, "stats/about.html")
+
+
 def load_site_global_context(request):
     return {
         "engines": Engine.objects.all().order_by("name")

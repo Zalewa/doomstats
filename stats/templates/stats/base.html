@@ -15,6 +15,7 @@
 				{% for engine in engines %}
 				<li><a href="{% url 'engine' name=engine.name %}">{{ engine.name }}</a></li>
 				{% endfor %}
+				<li><a href="{% url 'about' %}">About</a></li>
 			</ul>
 		</div>
 		<div class="content">
