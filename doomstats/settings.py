@@ -28,6 +28,7 @@ DEBUG = True
 default_cfg = {
     "secret_key": 'aha*7=pe^q8xwrrnioprr287vxmh1dkku&f1dtasqvp3)4^**j',
     "timezone": "UTC",
+    "static_url": "/static/",
     "databases" : {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -142,4 +143,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = '/static/'
+STATIC_URL = cfg["static_url"]
