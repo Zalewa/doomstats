@@ -1,5 +1,31 @@
 {% extends "stats/base.html" %}
 
 {% block content %}
-<p>Hi!</p>
+<div class="data">
+	<table>
+		<thead>
+			<tr>
+				<th colspan="2">Pointless stuff</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<th>Data collected since:</th>
+				<td>{{ first_batch.date|date:"Y-m-d H:i:s" }}</td>
+			</tr>
+			<tr>
+				<th>Collected batches:</th>
+				<td>{{ num_batches }}</td>
+			</tr>
+			<tr>
+				<th>Average all-time server count:</th>
+				<td>{{ average_server_count }}</td>
+			</tr>
+			<tr>
+				<th>Average all-time player count:</th>
+				<td>{{ average_player_count }}</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
 {% endblock content %}
