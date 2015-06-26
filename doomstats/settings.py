@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import sys
 import json
 import errno
 
@@ -37,21 +38,29 @@ default_cfg = {
 
 
 def get_cfg():
-    try:
-        with open(os.path.join(BASE_DIR, "config.json")) as f:
-            custom_cfg = json.loads(f.read())
-            if not DEBUG and 'secret_key' not in custom_cfg:
-                raise ValueError("no 'secret_key' in config")
-            combined = {}
-            combined.update(default_cfg)
-            combined.update(custom_cfg)
-            return combined
-    except (IOError, OSError) as e:
-        if e.errno == errno.ENOENT and DEBUG:
-            print "Using default config due to missing " \
+    paths = [
+        os.path.join(BASE_DIR, "config.json"),
+        "/etc/doomstats/config.json"
+    ]
+    paths = filter(lambda p: os.path.isfile(p), paths)
+    if not paths:
+        if DEBUG:
+            print >>sys.stderr, \
+                "Using default config due to missing " \
                 "config.json and DEBUG = {0}".format(DEBUG)
             return default_cfg
-        raise
+        else:
+            raise IOError('no config.json file found')
+    cfgpath = paths[0]
+    print >>sys.stderr, "Using config at '{0}'".format(cfgpath)
+    with open(cfgpath, "rb") as f:
+        custom_cfg = json.loads(f.read())
+        if not DEBUG and 'secret_key' not in custom_cfg:
+            raise ValueError("no 'secret_key' in config")
+        combined = {}
+        combined.update(default_cfg)
+        combined.update(custom_cfg)
+        return combined
 
 
 cfg = get_cfg()
