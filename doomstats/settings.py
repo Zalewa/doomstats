@@ -26,6 +26,7 @@ DEBUG = True
 
 default_cfg = {
     "secret_key": 'aha*7=pe^q8xwrrnioprr287vxmh1dkku&f1dtasqvp3)4^**j',
+    "timezone": "UTC",
     "databases" : {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -38,7 +39,13 @@ default_cfg = {
 def get_cfg():
     try:
         with open(os.path.join(BASE_DIR, "config.json")) as f:
-            return f.read()
+            custom_cfg = json.loads(f.read())
+            if not DEBUG and 'secret_key' not in custom_cfg:
+                raise ValueError("no 'secret_key' in config")
+            combined = {}
+            combined.update(default_cfg)
+            combined.update(custom_cfg)
+            return combined
     except (IOError, OSError) as e:
         if e.errno == errno.ENOENT and DEBUG:
             print "Using default config due to missing " \
@@ -112,7 +119,7 @@ DATABASES = cfg["databases"]
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = cfg["timezone"]
 
 USE_I18N = True
 
