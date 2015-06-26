@@ -1,0 +1,37 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="{% static 'css/stats.css' %}">
+		<title>Doom Stats</title>
+	</head>
+	<body>
+		<div class="page-header">
+			<h1 id="logo">Doom Stats</h1>
+		</div>
+		<div class="menubar">
+			<ul>
+				<li><a href="{% url 'front_page' %}">Main</a></li>
+				{% for engine in engines %}
+				<li><a href="{% url 'engine' name=engine.name %}">{{ engine.name }}</a></li>
+				{% endfor %}
+			</ul>
+		</div>
+		<div class="content">
+			{% block content %}
+			{% endblock %}
+		</div>
+		<div class="page-footer">
+			<p>
+				Doom Stats by Zalewa, 2015.
+				<a href="https://github.com/Zalewa/doomstats">Source</a>.
+			</p>
+			<p>
+				Powered by
+				<a href="https://bitbucket.org/zalewa/doomlister">Doomlister</a>
+				- a headless fork of
+				<a href="http://doomseeker.drdteam.org">Doomseeker</a>
+			</p>
+		</div>
+	</body>
+</html>
