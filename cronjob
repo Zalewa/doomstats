@@ -1,0 +1,7 @@
+# Example cronjob for statistics collection.
+# Collect stats every 20 minutes.
+#
+# Remember: doomlister program must be in PATH.
+# https://bitbucket.org/zalewa/doomlister
+
+11,31,51 * * * * /usr/bin/python /var/www/doomstats/manage.py collectstats 2>> /var/log/doomstats_collect.log
