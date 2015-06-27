@@ -116,6 +116,8 @@ TEMPLATES = [
     },
 ]
 
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+
 WSGI_APPLICATION = 'doomstats.wsgi.application'
 
 

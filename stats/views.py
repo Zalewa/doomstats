@@ -53,7 +53,10 @@ def _daterange_from_request(request):
 def _date_from_request(request, fieldname):
     stamp = request.GET.get(fieldname)
     if stamp is None:
-        return None
+        stamp = request.session.get(fieldname)
+        if stamp is None:
+            return None
+    request.session[fieldname] = stamp
     try:
         date = datetime.strptime(stamp, "%Y-%m-%d")
     except ValueError:
