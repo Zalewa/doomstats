@@ -1,6 +1,7 @@
 from .models import *
 from googlecharts.collections import Chart
 from doomstats.timestuff import daterange_resolution
+from datetime import datetime
 
 
 def general_table():
