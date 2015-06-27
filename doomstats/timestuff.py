@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.utils import timezone
 import os
 
@@ -22,6 +22,14 @@ def parse_rfc3339_stamp(stamp, splitter='T'):
 
 def parse_timezone_offset(offset):
     return timezone.get_fixed_timezone(_timezone_offset(offset))
+
+
+def day_range(date1, date2):
+    date1, date2 = min(date1, date2), max(date1, date2)
+    date1 = date1.replace(hour=0, minute=0, second=0, microsecond=0)
+    date2 = date2.replace(hour=0, minute=0, second=0, microsecond=0)
+    date2 += timedelta(days=1)
+    return date1, date2
 
 
 def _timezone_offset(offset):

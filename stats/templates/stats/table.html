@@ -1,0 +1,23 @@
+<div class="data"{% if table.id %} id="{{ table.id }}"{% endif %}>
+	<table>
+		<thead>
+			<tr>
+				<th colspan="{{ table.cols }}">{{ table.header }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in table.rows %}
+			<tr>
+				{% if table.cols > 1 %}
+				<th>{{ row|first }}</th>
+				{% for cell in row|slice:"1:" %}
+				<td>{{ cell }}</td>
+				{% endfor %}
+				{% else %}
+				<td>{{ row|first }}</td>
+				{% endif %}
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

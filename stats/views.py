@@ -1,28 +1,31 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from .models import *
+from .collections import *
 from datetime import timedelta, datetime
+from doomstats.timestuff import day_range
 import json
 import time
 
 
 def front_page(request):
     data = {}
-    data["first_batch"] = _first_batch()
-    data["num_batches"] = RefreshBatch.objects.count()
-    data["average_server_count"] = Server.objects.count() / max(1, data["num_batches"])
-    data["average_player_count"] = Player.objects.count() / max(1, data["num_batches"])
+    daterange = _daterange_for_query(request)
+    data["tables"] = [
+        general_table(),
+        stats_daterange_table(daterange)
+    ]
     return render(request, "stats/front_page.html", data)
 
 
-def _first_batch():
-    return RefreshBatch.objects.order_by("date").first() or \
-        RefreshBatch(date=datetime.fromtimestamp(0))
-
-
 def engine(request, name):
+    game_engine = get_object_or_404(Engine, name__iexact=name)
+    daterange = _daterange_for_query(request)
     data = {
         "name": name,
+        "tables": [
+            stats_daterange_table(daterange, game_engine),
+        ]
     }
     return render(request, "stats/engine.html", data)
 
@@ -40,6 +43,11 @@ def load_site_global_context(request):
             "date-to": time.mktime(dateto.timetuple()),
         })
     }
+
+
+def _daterange_for_query(request):
+    datefrom, dateto = _daterange_from_request(request)
+    return day_range(datefrom, dateto)
 
 
 def _daterange_from_request(request):

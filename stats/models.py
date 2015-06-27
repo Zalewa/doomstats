@@ -157,6 +157,15 @@ class Server(models.Model):
     def __str__(self):
         return str(self.address)
 
+    @classmethod
+    def count_in_daterange(cls, engine, daterange):
+        filters = {
+            "refresh_batch__date__range": daterange,
+        }
+        if engine is not None:
+            filters["engine"] = engine
+        return Server.objects.filter(**filters).count()
+
 
 class Player(models.Model):
     name = models.ForeignKey(Name)
@@ -169,3 +178,12 @@ class Player(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+    @classmethod
+    def count_in_daterange(cls, engine, daterange):
+        filters = {
+            "server__server__refresh_batch__date__range": daterange,
+        }
+        if engine is not None:
+            filters["server__server__engine"] = engine
+        return Player.objects.filter(**filters).count()
