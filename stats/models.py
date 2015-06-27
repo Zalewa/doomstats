@@ -15,6 +15,19 @@ class RefreshBatch(models.Model):
     def __str__(self):
         return str(self.date)
 
+    @classmethod
+    def daily(cls, daterange):
+        return cls.objects.filter(date__range=daterange).datetimes('date', 'day')
+
+    @classmethod
+    def hourly(cls, daterange):
+        return cls.objects.filter(date__range=daterange).datetimes('date', 'hour')
+
+    @classmethod
+    def slice(cls, daterange, resolution):
+        return cls.objects.filter(date__range=daterange).datetimes(
+            'date', resolution)
+
 
 class GameMode(models.Model):
     name = models.TextField(unique=True)

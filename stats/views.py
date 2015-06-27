@@ -23,9 +23,10 @@ def engine(request, name):
     daterange = _daterange_for_query(request)
     data = {
         "name": name,
-        "tables": [
+        "stats": [
             stats_daterange_table(daterange, game_engine),
-        ]
+            players_chart(daterange, game_engine)
+        ],
     }
     return render(request, "stats/engine.html", data)
 

@@ -1,0 +1,15 @@
+<script type="text/javascript">
+google.load('visualization', '1.0', {'packages':['corechart']});
+google.setOnLoadCallback(drawChart);
+function drawChart() {
+	var data = new google.visualization.DataTable();
+	{% for column in chart.columns %}
+	data.addColumn('{{ column.0 }}', '{{ column.1 }}');
+	{% endfor %}
+	data.addRows({{ chart.rows_json|safe }});
+	var options = {{ chart.options_json|safe }};
+	var chart = new google.visualization.{{ chart.kind }}($('#{{ chart.id }}').get(0));
+	chart.draw(data, options);
+}
+</script>
+<div class="chart" id="{{ chart.id }}"></div>

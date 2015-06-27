@@ -3,8 +3,16 @@
 {% block content %}
 <p>Engine: {{ name }}</p>
 
-{% for table in tables %}
-{% include 'stats/table.html' with table=table %}
+{% for stat in stats %}
+
+{% if stat.typeof == 'Table' %}
+{% include 'stats/table.html' with table=stat %}
+{% elif stat.typeof == 'Chart' %}
+{% include 'googlecharts/chart.html' with chart=stat %}
+{% else %}
+<p>Huh? Unknown type: {{ stat.typeof }}</p>
+{% endif %}
+
 {% endfor %}
 
 {% endblock %}

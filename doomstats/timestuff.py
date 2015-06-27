@@ -32,6 +32,15 @@ def day_range(date1, date2):
     return date1, date2
 
 
+def daterange_resolution(daterange):
+    date1, date2 = min(daterange), max(daterange)
+    delta = date2 - date1
+    if delta.days > 3:
+        return "day"
+    else:
+        return "hour"
+
+
 def _timezone_offset(offset):
     hours, minutes = offset.split(":")
     if hours[0] == '+':

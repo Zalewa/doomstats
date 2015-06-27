@@ -1,10 +1,12 @@
 from .models import *
+from googlecharts.collections import Chart
+from doomstats.timestuff import daterange_resolution
 
 
 def general_table():
     batch_count = RefreshBatch.objects.count()
     return Table(
-        id="general_table",
+        id="general-table",
         header="All-time stats",
         rows=[
             ("Data collected since:", DateCell(
@@ -17,11 +19,10 @@ def general_table():
         ])
 
 
-
 def stats_daterange_table(daterange, engine=None):
     batch_count = RefreshBatch.objects.filter(date__range=daterange).count()
     return Table(
-        id="stats_daterange_table",
+        id="stats-daterange-table",
         header="Amounts in date range",
         rows=[
             ("Collected batches:", batch_count),
@@ -30,6 +31,41 @@ def stats_daterange_table(daterange, engine=None):
             ("Average player count:",
              Player.count_in_daterange(engine, daterange) / max(1, batch_count))
         ])
+
+
+def players_chart(daterange, engine=None):
+    resolution = daterange_resolution(daterange)
+    if resolution == "day":
+        dateformat = "%Y-%m-%d %a"
+    elif resolution == "hour":
+        dateformat = "%d %a %H:%M"
+    dateslices = RefreshBatch.slice(daterange, resolution)
+    rows = []
+    for dateslice in dateslices:
+        batch_filter = {
+            "date__year": dateslice.year,
+            "date__month": dateslice.month,
+            "date__day": dateslice.day
+        }
+        if resolution == "hour":
+            batch_filter["date__hour"] = dateslice.hour
+        batches = RefreshBatch.objects.filter(**batch_filter)
+        filter = {
+            "server__server__refresh_batch__in": batches
+        }
+        if engine:
+            filter["server__server__engine"] = engine
+        count = Player.objects.filter(**filter).count()
+        rows.append((dateslice.strftime(dateformat),
+                     count / max(1, batches.count())))
+    return Chart(
+        id="players-chart", kind="LineChart",
+        options={'title': 'Players per {0}'.format(resolution),
+                 'width': 800,
+                 'height': 300,
+                 'legend': 'none'},
+        columns=[('string', 'Day'), ('number', 'Players')],
+        rows=rows)
 
 
 def _first_batch():
@@ -46,11 +82,14 @@ class Table(object):
             self.rows = []
 
     @property
-    def cols(self):
+    def typeof(self):
+        return self.__class__.__name__
+
+    @property
+    def num_cols(self):
         if self.rows:
             return len(self.rows[0])
         return 0
-
 
 class DateCell(object):
     def __init__(self, date, format):
