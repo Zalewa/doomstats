@@ -14,6 +14,12 @@ div {
 	display: block;
 }
 
+div.chart, div.chart div {
+	/* If we don't do this, it will throw off tooltips coordinates in */
+	/* the chart. No idea what's the proper solution here. */
+	padding: 0px;
+}
+
 p {
 	text-align: justify;
 }
