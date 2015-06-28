@@ -1,11 +1,11 @@
 * {
-	#border: 1px dotted blue;
 }
 
 
 html, body {
 	height: 100%;
 	max-width: 800px;
+	font-family: sans;
 }
 
 /* Section: Generics */
@@ -15,6 +15,7 @@ div {
 }
 
 p {
+	text-align: justify;
 }
 
 p + p {
@@ -65,6 +66,10 @@ h1 {
 	text-align: center;
 	position: fixed;
 	bottom: 0px;
+}
+
+#page-footer p {
+	text-align: center;
 }
 
 /* Date */
