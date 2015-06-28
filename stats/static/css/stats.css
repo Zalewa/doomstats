@@ -104,3 +104,11 @@ h1 .sub-title {
 	display: block;
 	background: #bbb;
 }
+
+div#page-content > * {
+	margin-top: 5px;
+}
+
+div#page-content > *:first-child {
+	margin-top: 0px;
+}
