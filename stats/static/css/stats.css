@@ -49,7 +49,7 @@ h1 {
 
 #page-content {
 	overflow: hidden;
-	#min-height: 100%;
+	padding-right: 0px;
 }
 
 .page-clear {
