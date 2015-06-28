@@ -82,6 +82,19 @@ h1 {
 div.date {
 	border: 1px solid black;
 	background-color: #ddd;
+	padding-bottom: 10px;
+}
+
+div.date > div + div {
+	margin-top: 5px;
+}
+
+div.date form {
+	display: inline;
+}
+
+div.date ul {
+	display: inline;
 }
 
 .datepicker {
@@ -172,4 +185,24 @@ tbody td {
 
 #menubar a:hover {
 	color: green;
+}
+
+/* Section: link list */
+ul.linklist li {
+	display: inline;
+	list-style-type: none;
+	background-color: #369;
+	padding: 5px 10px;
+}
+
+ul.linklist li:hover {
+	display: inline;
+	list-style-type: none;
+	background-color: #57b;
+	padding: 5px 10px;
+}
+
+ul.linklist li a {
+	color: white;
+	text-decoration: none;
 }

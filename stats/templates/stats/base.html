@@ -34,11 +34,31 @@
 			<div id="page-content">
 				{% block daterange %}
 				<div class="input-append date">
-					<span class="label">Date:</span>
-					<input type="text" class="datepicker" id="date-from">
-					<span class="add-on">to</span>
-					<input type="text" class="datepicker" id="date-to">
-					<span class="hint">All times are UTC.</span>
+					<div>
+						<form method="GET" action="?">
+							<span class="label">Date:</span>
+							<input name="datefrom" type="text" class="datepicker" id="date-from">
+							<span class="add-on">to</span>
+							<input name="dateto" type="text" class="datepicker" id="date-to">
+							<input type="submit" class="no-javascript" value="Go">
+							<span class="hint">All times are UTC.</span>
+						</form>
+					</div>
+					<div>
+						<ul class="linklist">
+							<li><a href="?datefrom={{ dates.today }}&dateto={{ dates.today }}"
+									class="no-daterange"">Today</a></li>
+							<li><a href="?datefrom={{ dates.yesterday }}&dateto={{ dates.yesterday }}"
+									class="no-daterange"">Yesterday</a></li>
+							<li><a href="?datefrom={{ dates.7days }}&dateto={{ dates.yesterday }}"
+									class="no-daterange"">7 days</a></li>
+						</ul>
+						<span>Day:</span>
+						<form method="GET" action="?">
+							<input name="day" type="text" class="datepicker" id="date-day">
+							<input type="submit" class="no-javascript" value="Go"></input>
+						</form>
+					</div>
 				</div>
 				{% endblock %}
 				{% block content %}

@@ -36,13 +36,19 @@ def about(request):
 
 
 def load_site_global_context(request):
+    print 'day=', request.GET.get('day')
     datefrom, dateto = _daterange_from_request(request)
     return {
         "engines": Engine.objects.all().order_by("name"),
         "json": json.dumps({
             "date-from": time.mktime(datefrom.timetuple()),
             "date-to": time.mktime(dateto.timetuple()),
-        })
+        }),
+        "dates": {
+            "today": _dateformat(timezone.now()),
+            "yesterday": _dateformat(timezone.now() - timedelta(days=1)),
+            "7days": _dateformat(timezone.now() - timedelta(days=7))
+        }
     }
 
 
@@ -74,5 +80,15 @@ def _date_from_request(request, fieldname):
     return date
 
 
+def _dateformat(date):
+    return date.strftime("%Y-%m-%d")
+
+
 def _stddate(date):
+    try:
+        earliest = RefreshBatch.objects.earliest('date').date
+        latest = RefreshBatch.objects.latest('date').date
+    except RefreshBatch.DoesNotExist:
+        earliest = latest = date
+    date = max(earliest, min(latest, date))
     return date.replace(hour=0, minute=0, second=0)
