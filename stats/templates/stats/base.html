@@ -3,7 +3,8 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<link rel="stylesheet" href="{% static 'jquery-ui-1.11.4/jquery-ui.min.css' %}">
+		<link rel="stylesheet" href="{% static 'jquery-ui-1.11.4/jquery-ui.css' %}">
+		<link rel="stylesheet" href="{% static 'css/reset.css' %}">
 		<link rel="stylesheet" href="{% static 'css/stats.css' %}">
 		<title>Doom Stats</title>
 		<script type="text/javascript" src="{% static 'jquery-1.11.3.min.js' %}"></script>
@@ -16,32 +17,35 @@
 		</script>
 	</head>
 	<body>
-		<div class="page-header">
+		<div id="page-header">
 			<h1 id="logo">Doom Stats</h1>
 		</div>
-		<div class="menubar">
-			<ul>
-				<li><a href="{% url 'front_page' %}">Main</a></li>
-				{% for engine in engines %}
-				<li><a href="{% url 'engine' name=engine.name %}">{{ engine.name }}</a></li>
-				{% endfor %}
-				<li><a href="{% url 'about' %}">About</a></li>
-			</ul>
-		</div>
-		<div class="content">
-			{% block daterange %}
-			<div class="input-append date">
-				<span class="label">Date:</span>
-				<input type="text" class="datepicker" id="date-from">
-				<span class="add-on">to</span>
-				<input type="text" class="datepicker" id="date-to">
-				<span class="hint">All times are UTC.</span>
+		<div id="page-wrapper">
+			<div id="menubar">
+				<ul>
+					<li><a href="{% url 'front_page' %}">Main</a></li>
+					{% for engine in engines %}
+					<li><a href="{% url 'engine' name=engine.name %}">{{ engine.name }}</a></li>
+					{% endfor %}
+					<li><a href="{% url 'about' %}">About</a></li>
+				</ul>
 			</div>
-			{% endblock %}
-			{% block content %}
-			{% endblock %}
+			<div id="page-content">
+				{% block daterange %}
+				<div class="input-append date">
+					<span class="label">Date:</span>
+					<input type="text" class="datepicker" id="date-from">
+					<span class="add-on">to</span>
+					<input type="text" class="datepicker" id="date-to">
+					<span class="hint">All times are UTC.</span>
+				</div>
+				{% endblock %}
+				{% block content %}
+				{% endblock %}
+			</div>
 		</div>
-		<div class="page-footer">
+		<div class="page-clear"></div>
+		<div id="page-footer">
 			<p>
 				Doom Stats by Zalewa, 2015.
 				<a href="https://github.com/Zalewa/doomstats">Source</a>.

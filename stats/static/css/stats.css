@@ -1,0 +1,68 @@
+* {
+	#border: 1px dotted blue;
+}
+
+
+html, body {
+	height: 100%;
+	max-width: 800px;
+}
+
+/* Section: Generics */
+div {
+	padding: 5px;
+	display: block;
+}
+
+p {
+}
+
+p + p {
+	margin-top: 0.5em;
+}
+
+h1 {
+	font-size: 2em;
+	font-weight: bold;
+	text-transform: capitalize;
+}
+
+/* Section: Main layout */
+#page-header {
+	background-color: #999;
+}
+
+#page-wrapper {
+	padding: 0px;
+}
+
+#page-wrapper:after {
+	content: '';
+	display: block;
+}
+
+#menubar {
+	background-color: #ccc;
+	float: left;
+	height: 100%;
+}
+
+#page-content {
+	overflow: hidden;
+	#min-height: 100%;
+}
+
+.page-clear {
+	clear: both;
+	height: 60px;
+}
+
+#page-footer {
+	background-color: white;
+	width: 800px;
+	font-size: 0.8em;
+	color: #999;
+	text-align: center;
+	position: fixed;
+	bottom: 0px;
+}
