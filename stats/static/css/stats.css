@@ -66,3 +66,29 @@ h1 {
 	position: fixed;
 	bottom: 0px;
 }
+
+/* Date */
+div.date {
+	border: 1px solid black;
+	background-color: #ddd;
+}
+
+.datepicker {
+	width: 150px;
+}
+
+/* Generic classes */
+.label {
+	font-weight: bold;
+}
+
+.add-on {
+	margin: 0px;
+	padding: 0px 5px;
+}
+
+.hint {
+	font-size: 0.8em;
+	color: #222;
+	white-space: nowrap;
+}
