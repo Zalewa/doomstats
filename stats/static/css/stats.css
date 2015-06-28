@@ -149,3 +149,21 @@ tbody th {
 tbody td {
 	text-align: left;
 }
+
+/* Section: main menu */
+#menubar ul li {
+	margin-top: 2px;
+}
+
+#menubar a {
+	text-decoration: none;
+	color: blue;
+}
+
+#menubar a:visited {
+	color: blue;
+}
+
+#menubar a:hover {
+	color: green;
+}
