@@ -112,3 +112,35 @@ div#page-content > * {
 div#page-content > *:first-child {
 	margin-top: 0px;
 }
+
+/* Section: tables */
+div.data {
+	background-color: #eee;
+}
+
+.data table {
+	width: 100%;
+}
+
+th, td {
+	padding: 5px;
+}
+
+thead tr {
+	border-bottom: 4px double black;
+}
+
+tbody tr {
+	border-top: 1px solid gray;
+}
+
+tbody th {
+	text-align: left;
+	border-right: 2px dotted gray;
+	white-space: nowrap;
+	width: 1px;
+}
+
+tbody td {
+	text-align: left;
+}

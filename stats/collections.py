@@ -62,7 +62,7 @@ def players_chart(daterange, engine=None):
     return Chart(
         id="players-chart", kind="LineChart",
         options={'title': 'Players per {0}'.format(resolution),
-                 'width': 800,
+                 'width': "100%",
                  'height': 300,
                  'legend': 'none'},
         columns=[('string', 'Day'), ('number', 'Players')],
