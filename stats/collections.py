@@ -14,9 +14,11 @@ def general_table():
                 _first_batch().date, "%Y-%m-%d %H:%M:%S")),
             ("Collected batches:", batch_count),
             ("Average all-time server count:",
-             Server.objects.count() / max(1, batch_count)),
+             DecimalCell(
+                 Server.objects.count() / float(max(1, batch_count)))),
             ("Average all-time player count:",
-             Player.objects.count() / max(1, batch_count))
+             DecimalCell(
+                 Player.objects.count() / float(max(1, batch_count))))
         ])
 
 
@@ -28,9 +30,13 @@ def stats_daterange_table(daterange, engine=None):
         rows=[
             ("Collected batches:", batch_count),
             ("Average server count:",
-             Server.count_in_daterange(engine, daterange) / max(1, batch_count)),
+             DecimalCell(
+                 Server.count_in_daterange(engine, daterange) / \
+                 float(max(1, batch_count)))),
             ("Average player count:",
-             Player.count_in_daterange(engine, daterange) / max(1, batch_count))
+             DecimalCell(
+                 Player.count_in_daterange(engine, daterange) / \
+                 float(max(1, batch_count))))
         ])
 
 
@@ -58,7 +64,7 @@ def players_chart(daterange, engine=None):
             filter["server__server__engine"] = engine
         count = Player.objects.filter(**filter).count()
         rows.append((dateslice.strftime(dateformat),
-                     count / max(1, batches.count())))
+                     count / float(max(1, batches.count()))))
     return Chart(
         id="players-chart", kind="LineChart",
         options={'title': 'Players per {0}'.format(resolution),
@@ -92,6 +98,7 @@ class Table(object):
             return len(self.rows[0])
         return 0
 
+
 class DateCell(object):
     def __init__(self, date, format):
         self.date = date
@@ -99,3 +106,12 @@ class DateCell(object):
 
     def __str__(self):
         return self.date.strftime(self.format)
+
+
+class DecimalCell(object):
+    def __init__(self, number, digits=2):
+        self.number = number
+        self.digits = digits
+
+    def __str__(self):
+        return str("{0:." + str(self.digits) + "f}").format(self.number)
