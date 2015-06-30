@@ -50,6 +50,7 @@ def players_chart(daterange, engine=None):
     dateslices = RefreshBatch.slice(daterange, resolution)
     rows = []
     for dateslice in dateslices:
+        dateslice = timezone.localtime(dateslice, timezone.utc)
         batch_filter = {
             "date__year": dateslice.year,
             "date__month": dateslice.month,
