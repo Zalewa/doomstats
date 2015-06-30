@@ -201,5 +201,4 @@ class Player(models.Model):
             filters["is_bot"] = False
         if engine is not None:
             filters["server__server__engine"] = engine
-        print "filters: ", filters
         return Player.objects.filter(**filters).count()
