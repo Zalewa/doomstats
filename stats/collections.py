@@ -18,7 +18,8 @@ def general_table():
                  Server.objects.count() / float(max(1, batch_count)))),
             ("Average all-time player count:",
              DecimalCell(
-                 Player.objects.count() / float(max(1, batch_count))))
+                 Player.objects.filter(is_bot=False).count() \
+                 / float(max(1, batch_count))))
         ])
 
 
@@ -58,7 +59,8 @@ def players_chart(daterange, engine=None):
             batch_filter["date__hour"] = dateslice.hour
         batches = RefreshBatch.objects.filter(**batch_filter)
         filter = {
-            "server__server__refresh_batch__in": batches
+            "server__server__refresh_batch__in": batches,
+            "is_bot": False
         }
         if engine:
             filter["server__server__engine"] = engine

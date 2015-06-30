@@ -193,10 +193,13 @@ class Player(models.Model):
         return str(self.name)
 
     @classmethod
-    def count_in_daterange(cls, engine, daterange):
+    def count_in_daterange(cls, engine, daterange, also_bots=False):
         filters = {
             "server__server__refresh_batch__date__range": daterange,
         }
+        if not also_bots:
+            filters["is_bot"] = False
         if engine is not None:
             filters["server__server__engine"] = engine
+        print "filters: ", filters
         return Player.objects.filter(**filters).count()
