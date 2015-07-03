@@ -1,4 +1,5 @@
 from .models import *
+from django.db.models import Count
 from googlecharts.collections import Chart, Formatter
 from doomstats.timestuff import daterange_resolution
 from datetime import datetime
@@ -95,16 +96,36 @@ def players_chart(daterange, engine=None):
         ])
 
 
+def wads_popularity_table(daterange, engine):
+    files = GameFile.objects.filter(
+        servergamefile__server_data__server__refresh_batch__date__range=daterange,
+        servergamefile__server_data__server__engine=engine).annotate(
+            total=Count('servergamefile__server_data__player')).filter(
+                total__gt=0).order_by('-total')[:20]
+    total_players = reduce(lambda a, b: a + b, [ f.total for f in files ])
+    rows = []
+    for file in files:
+        percentage = "{0:.2f}%".format(
+            100.0 * file.total / float(max(1, total_players)))
+        rows.append((file.name, percentage))
+    return Table(
+        id="wads-popularity-table",
+        header="WADs popularity",
+        left_header=False,
+        rows=rows)
+
+
 def _first_batch():
     return RefreshBatch.objects.order_by("date").first() or \
         RefreshBatch(date=datetime.fromtimestamp(0))
 
 
 class Table(object):
-    def __init__(self, id=None, header=None, rows=None):
+    def __init__(self, id=None, header=None, rows=None, left_header=True):
         self.id = id
         self.header = header
         self.rows = rows
+        self.left_header = left_header
         if not rows:
             self.rows = []
 
