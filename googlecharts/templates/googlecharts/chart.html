@@ -7,6 +7,11 @@ function drawChart() {
 	data.addColumn('{{ column.0 }}', '{{ column.1 }}');
 	{% endfor %}
 	data.addRows({{ chart.rows_json|safe }});
+	{% for formatter in chart.formatters %}
+	var formatter = new google.visualization.{{ formatter.name }}(
+		{{ formatter.options_json|safe }});
+	formatter.format(data, {{ formatter.column }});
+	{% endfor %}
 	var options = {{ chart.options_json|safe }};
 	var chart = new google.visualization.{{ chart.kind }}($('#{{ chart.id }}').get(0));
 	chart.draw(data, options);

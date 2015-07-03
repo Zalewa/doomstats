@@ -35,7 +35,7 @@ def day_range(date1, date2):
 def daterange_resolution(daterange):
     date1, date2 = min(daterange), max(daterange)
     delta = date2 - date1
-    if delta.days > 3:
+    if delta.days > 7:
         return "day"
     else:
         return "hour"

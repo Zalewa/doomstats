@@ -1,5 +1,5 @@
 from .models import *
-from googlecharts.collections import Chart
+from googlecharts.collections import Chart, Formatter
 from doomstats.timestuff import daterange_resolution
 from datetime import datetime
 
@@ -43,11 +43,14 @@ def stats_daterange_table(daterange, engine=None):
 
 def players_chart(daterange, engine=None):
     resolution = daterange_resolution(daterange)
+    dateslices = RefreshBatch.slice(daterange, resolution)
     if resolution == "day":
         dateformat = "%Y-%m-%d %a"
     elif resolution == "hour":
-        dateformat = "%d %a %H:%M"
-    dateslices = RefreshBatch.slice(daterange, resolution)
+        if dateslices[0].date() == dateslices.last().date():
+            dateformat = "%H:%M"
+        else:
+            dateformat = "%d %a %H:%M"
     rows = []
     for dateslice in dateslices:
         dateslice = timezone.localtime(dateslice, timezone.utc)
@@ -73,9 +76,23 @@ def players_chart(daterange, engine=None):
         options={'title': 'Players per {0}'.format(resolution),
                  'width': "100%",
                  'height': 300,
-                 'legend': 'none'},
+                 'legend': 'none',
+                 'hAxis': {
+                     'maxTextLines': 1
+                 },
+                 'vAxis': {
+                     'minValue': 0,
+                     'format': '#.##'
+                 }},
         columns=[('string', 'Day'), ('number', 'Players')],
-        rows=rows)
+        rows=rows,
+        formatters=[
+            Formatter(
+                column=1, name="NumberFormat",
+                options={
+                    "fractionDigits": 2
+                })
+        ])
 
 
 def _first_batch():
