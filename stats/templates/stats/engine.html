@@ -5,7 +5,8 @@
 
 {% for stat in stats %}
 
-{% if stat.typeof == 'Table' %}
+{% if stat == None %}
+{% elif stat.typeof == 'Table' %}
 {% include 'stats/table.html' with table=stat %}
 {% elif stat.typeof == 'Chart' %}
 {% include 'googlecharts/chart.html' with chart=stat %}

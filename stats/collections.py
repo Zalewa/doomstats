@@ -102,7 +102,9 @@ def wads_popularity_table(daterange, engine):
         servergamefile__server_data__server__engine=engine).annotate(
             total=Count('servergamefile__server_data__player')).filter(
                 total__gt=0).order_by('-total')[:20]
-    total_players = reduce(lambda a, b: a + b, [ f.total for f in files ])
+    if len(files) == 0:
+        return None
+    total_players = reduce(lambda a, b: a + b, [ f.total for f in files ], 0)
     rows = []
     for file in files:
         percentage = "{0:.2f}%".format(

@@ -37,7 +37,6 @@ def about(request):
 
 
 def load_site_global_context(request):
-    print 'day=', request.GET.get('day')
     datefrom, dateto = _daterange_from_request(request)
     return {
         "engines": Engine.objects.all().order_by("name"),
