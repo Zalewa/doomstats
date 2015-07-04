@@ -102,14 +102,15 @@ def wads_popularity_table(daterange, engine):
         servergamefile__server_data__server__engine=engine).annotate(
             total=Count('servergamefile__server_data__player')).filter(
                 total__gt=0).order_by('-total')[:20]
-    if len(files) == 0:
-        return None
     total_players = reduce(lambda a, b: a + b, [ f.total for f in files ], 0)
     rows = []
-    for file in files:
-        percentage = "{0:.2f}%".format(
-            100.0 * file.total / float(max(1, total_players)))
-        rows.append((file.name, percentage))
+    if len(files) > 0:
+        for file in files:
+            percentage = "{0:.2f}%".format(
+                100.0 * file.total / float(max(1, total_players)))
+            rows.append((file.name, percentage))
+    else:
+        rows.append(("No PWADs were played in given time range.",))
     return Table(
         id="wads-popularity-table",
         header="WADs popularity",
