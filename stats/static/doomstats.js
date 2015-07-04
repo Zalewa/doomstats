@@ -1,6 +1,6 @@
 function on_date_modified(dateText, inst) {
 	if ($(this).attr('id') == 'date-day') {
-		var date = $(this).datepicker('getDate');
+		var date = $(this).val();
 		goto_date(date, date);
 	} else {
 		reload_dates();
@@ -8,26 +8,19 @@ function on_date_modified(dateText, inst) {
 }
 
 function reload_dates() {
-	var datefrom = $('#date-from').datepicker("getDate");
-	var dateto = $('#date-to').datepicker("getDate");
+	var datefrom = $('#date-from').val();
+	var dateto = $('#date-to').val();
 	goto_date(datefrom, dateto)
 }
 
 function goto_date(datefrom, dateto) {
-	var timefrom = date_to_stamp(datefrom);
-	var timeto = date_to_stamp(dateto);
 	var current = URI.parseQuery(location.search);
-	if (current["datefrom"] != timefrom || current["dateto"] != timeto) {
+	if (current["datefrom"] != datefrom || current["dateto"] != dateto) {
 		var uri = new URI();
-		uri.setQuery("datefrom", timefrom);
-		uri.setQuery("dateto", timeto);
+		uri.setQuery("datefrom", datefrom);
+		uri.setQuery("dateto", dateto);
 		location.href = uri.href();
 	}
-}
-
-
-function date_to_stamp(date) {
-	return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
 }
 
 function apply_dateranges_to_a_hrefs() {
@@ -51,8 +44,8 @@ $(document).ready(function() {
 
 	apply_dateranges_to_a_hrefs();
 	if ($('#date-from').length && $('#date-to').length) {
-		$('#date-from').datepicker("setDate", new Date(sitedata["date-from"] * 1000.0));
-		$('#date-to').datepicker("setDate", new Date(sitedata["date-to"] * 1000.0));
+		$('#date-from').val(sitedata["date-from"])
+		$('#date-to').val(sitedata["date-to"])
 		reload_dates();
 	}
 });

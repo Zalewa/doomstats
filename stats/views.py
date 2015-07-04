@@ -42,8 +42,8 @@ def load_site_global_context(request):
     return {
         "engines": Engine.objects.all().order_by("name"),
         "json": json.dumps({
-            "date-from": time.mktime(datefrom.timetuple()),
-            "date-to": time.mktime(dateto.timetuple()),
+            "date-from": _dateformat(datefrom),
+            "date-to": _dateformat(dateto),
         }),
         "dates": {
             "today": _dateformat(timezone.now()),
