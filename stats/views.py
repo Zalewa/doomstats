@@ -26,7 +26,8 @@ def engine(request, name):
         "stats": [
             stats_daterange_table(daterange, game_engine),
             players_chart(daterange, game_engine),
-            wads_popularity_table(daterange, game_engine)
+            wads_popularity_table(daterange, game_engine),
+            servers_popularity_table(daterange, game_engine)
         ],
     }
     return render(request, "stats/engine.html", data)

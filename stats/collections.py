@@ -106,14 +106,34 @@ def wads_popularity_table(daterange, engine):
     rows = []
     if len(files) > 0:
         for file in files:
-            percentage = "{0:.2f}%".format(
-                100.0 * file.total / float(max(1, total_players)))
-            rows.append((file.name, percentage))
+            rows.append((file.name, PercentageCell(file.total, total_players)))
     else:
         rows.append(("No PWADs were played in given time range.",))
     return Table(
         id="wads-popularity-table",
         header="WADs popularity",
+        left_header=False,
+        rows=rows)
+
+
+def servers_popularity_table(daterange, engine):
+    servers = ServerData.objects.filter(
+        server__refresh_batch__date__range=daterange,
+        server__engine=engine).values("name__name").annotate(
+            total=Count('player')).filter(
+                total__gt=0).order_by('-total')[:20]
+    total_players = reduce(lambda a, b: a + b, [ s["total"] for s in servers ], 0)
+    rows = []
+    if len(servers) > 0:
+        for server in servers:
+            rows.append(
+                (server["name__name"],
+                 PercentageCell(server["total"], total_players)))
+    else:
+        rows.append(("No servers had players in given time range.",))
+    return Table(
+        id="servers-popularity-table",
+        header="Servers popularity",
         left_header=False,
         rows=rows)
 
@@ -159,3 +179,19 @@ class DecimalCell(object):
 
     def __str__(self):
         return str("{0:." + str(self.digits) + "f}").format(self.number)
+
+
+class PercentageCell(object):
+    def __init__(self, number, total, digits=2):
+        self.number = number
+        self.total = total
+        self.digits = digits
+
+    def __str__(self):
+        if self.total == 0:
+            return "N/A"
+        return str("{0:." + str(self.digits) + "f}%").format(self._factor * 100.0)
+
+    @property
+    def _factor(self):
+        return float(self.number) / float(self.total)
