@@ -98,6 +98,9 @@
 }
 .ui-datepicker .ui-datepicker-prev,
 .ui-datepicker .ui-datepicker-next {
+	background-position: center;
+	background-size: 1.0em;
+	background-repeat: no-repeat;
 	line-height: 1.8em;
 	display: inline-block;
 	position: absolute;
@@ -109,12 +112,12 @@
 	top: 1px;
 }
 .ui-datepicker .ui-datepicker-prev {
-	background: url("../icons/prev.png") center/1.0em 1.0em no-repeat;
+	background-image: url("../icons/prev.png");
 	float: left;
 	left: 2px;
 }
 .ui-datepicker .ui-datepicker-next {
-	background: url("../icons/next.png") center/1.0em 1.0em no-repeat;
+	background-image: url("../icons/next.png");
 	float: right;
 	right: 2px;
 }
