@@ -172,6 +172,13 @@ tbody td {
 /* Section: main menu */
 #menubar ul li {
 	margin-top: 2px;
+	font-size: 1.0em;
+}
+
+#menubar ul ul {
+	font-size: 0.9em;
+	margin-left: 10px;
+	margin-bottom: 5px;
 }
 
 #menubar a {

@@ -18,19 +18,55 @@ def front_page(request):
     return render(request, "stats/front_page.html", data)
 
 
-def engine(request, name):
-    game_engine = get_object_or_404(Engine, name__iexact=name)
-    daterange = _daterange_for_query(request)
-    data = {
-        "name": name,
-        "stats": [
-            stats_daterange_table(daterange, game_engine),
-            players_chart(daterange, game_engine),
-            wads_popularity_table(daterange, game_engine),
-            servers_popularity_table(daterange, game_engine)
-        ],
-    }
-    return render(request, "stats/engine.html", data)
+def engine_players(request, name):
+    return _Engine(request, name).players()
+
+
+def engine_wads(request, name):
+    return _Engine(request, name).wads()
+
+
+def engine_servers(request, name):
+    return _Engine(request, name).servers()
+
+
+class _Engine(object):
+    def __init__(self, request, name):
+        self._request = request
+        self._name = name
+        self._game_engine = get_object_or_404(Engine, name__iexact=name)
+        self._daterange = _daterange_for_query(request)
+
+    def players(self):
+        data = {
+            "cur_engine": self._game_engine,
+            "stats": [
+                stats_daterange_table(self._daterange, self._game_engine),
+                players_chart(self._daterange, self._game_engine)
+            ],
+        }
+        return self._render(data)
+
+    def wads(self):
+        data = {
+            "cur_engine": self._game_engine,
+            "stats": [
+                wads_popularity_table(self._daterange, self._game_engine)
+            ],
+        }
+        return self._render(data)
+
+    def servers(self):
+        data = {
+            "cur_engine": self._game_engine,
+            "stats": [
+                servers_popularity_table(self._daterange, self._game_engine)
+            ],
+        }
+        return self._render(data)
+
+    def _render(self, data):
+        return render(self._request, "stats/engine.html", data)
 
 
 def about(request):

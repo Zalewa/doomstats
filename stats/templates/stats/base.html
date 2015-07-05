@@ -27,6 +27,13 @@
 					<li><a href="{% url 'front_page' %}">Main</a></li>
 					{% for engine in engines %}
 					<li><a href="{% url 'engine' name=engine.name %}">{{ engine.name }}</a></li>
+					{% if engine == cur_engine %}
+					<ul>
+						<li><a href="{% url 'engine' name=engine.name %}">Players</a></li>
+						<li><a href="{% url 'wads' name=engine.name %}">WADs</a></li>
+						<li><a href="{% url 'servers' name=engine.name %}">Servers</a></li>
+					</ul>
+					{% endif %}
 					{% endfor %}
 					<li><a href="{% url 'about' %}">About</a></li>
 				</ul>
