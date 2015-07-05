@@ -1,5 +1,5 @@
 # Doom Stats
-Statistics collection and display site for Doom multiplayer games
+Statistics collection and display site for Doom multiplayer games.
 
 <http://www.doomstats.co.nr/>
 
