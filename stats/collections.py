@@ -138,6 +138,47 @@ def servers_popularity_table(daterange, engine):
         rows=rows)
 
 
+def iwad_popularity_chart(daterange, engine):
+    files = Iwad.objects.filter(
+        serverdata__server__refresh_batch__date__range=daterange,
+        serverdata__server__engine=engine).annotate(
+            num_players=Count('serverdata__player')).order_by('-num_players')
+    total_players = sum([ f.num_players for f in files ], 0)
+    if not total_players:
+        return None
+    rows = []
+    for f in files:
+        rows.append((f.name, _to_percent(f.num_players, total_players)))
+    height = 25 * files.count()
+    return Chart(
+        id="iwad-popularity-chart", kind="BarChart",
+        options={
+            'title': 'IWAD popularity',
+            'width': '100%',
+            'height': height,
+            'legend': 'none',
+            'vAxis': {
+                'maxTextLines': 1,
+            },
+            'chartArea': {
+                'left': 100,
+                'top': 20,
+                'height': height - 40,
+                'width': '75%'
+            }
+        },
+        columns=[('string', 'IWAD'), ('number', 'Players')],
+        rows=rows,
+        formatters=[
+            Formatter(
+                column=1, name="NumberFormat",
+                options={
+                    "fractionDigits": 2,
+                    "suffix": "%"
+                })
+        ])
+
+
 def _first_batch():
     return RefreshBatch.objects.order_by("date").first() or \
         RefreshBatch(date=datetime.fromtimestamp(0))
@@ -188,10 +229,14 @@ class PercentageCell(object):
         self.digits = digits
 
     def __str__(self):
-        if self.total == 0:
-            return "N/A"
-        return str("{0:." + str(self.digits) + "f}%").format(self._factor * 100.0)
+        return _to_percent_str(self.number, self.total, self.digits)
 
-    @property
-    def _factor(self):
-        return float(self.number) / float(self.total)
+
+def _to_percent_str(value, total, digits=2):
+    if total == 0:
+        return "N/A"
+    return str("{0:." + str(digits) + "f}%").format(_to_percent(value, total))
+
+
+def _to_percent(value, total):
+    return (float(value) / total) * 100.0

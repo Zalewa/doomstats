@@ -51,7 +51,8 @@ class _Engine(object):
         data = {
             "cur_engine": self._game_engine,
             "stats": [
-                wads_popularity_table(self._daterange, self._game_engine)
+                wads_popularity_table(self._daterange, self._game_engine),
+                iwad_popularity_chart(self._daterange, self._game_engine)
             ],
         }
         return self._render(data)
