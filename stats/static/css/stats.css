@@ -34,11 +34,21 @@ h1 {
 	text-transform: capitalize;
 }
 
-/* Section: Main layout */
+/* Section: Page header */
 #page-header {
 	background-color: #999;
 }
 
+#logo {
+	display: inline-block;
+}
+
+#co-nr-logo {
+	padding: 0px;
+	float: right;
+}
+
+/* Section: Main layout */
 #page-wrapper {
 	padding: 0px;
 }
