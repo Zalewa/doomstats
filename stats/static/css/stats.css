@@ -43,6 +43,19 @@ h1 {
 	display: inline-block;
 }
 
+#logo a {
+	color: black;
+	text-decoration: none;
+}
+
+#logo a:hover {
+	color: black;
+}
+
+#logo a:visited {
+	color: black;
+}
+
 #co-nr-logo {
 	padding: 0px;
 	float: right;
