@@ -17,11 +17,11 @@ class RefreshBatch(models.Model):
 
     @classmethod
     def daily(cls, daterange):
-        return cls.objects.filter(date__range=daterange).datetimes('date', 'day')
+        return cls.slice(daterange, 'day')
 
     @classmethod
     def hourly(cls, daterange):
-        return cls.objects.filter(date__range=daterange).datetimes('date', 'hour')
+        return cls.slice(daterange, 'hour')
 
     @classmethod
     def slice(cls, daterange, resolution):
