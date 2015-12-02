@@ -14,14 +14,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         _errlog("removing excessive batches")
         date = _startdate()
-        while True:
+        now = datetime.now().replace(tzinfo=date.tzinfo)
+        while date < now:
             batches = RefreshBatch.objects.filter(
                 date__range=(date, _nexthour(date)))
             _errlog("{0}, {1}".format(date, len(batches)))
             if len(batches) > 2:
                 _purge_excessive_batches(batches)
-            if not batches:
-                break
             date = _nexthour(date)
 
 
