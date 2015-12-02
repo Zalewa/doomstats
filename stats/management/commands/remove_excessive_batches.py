@@ -23,10 +23,6 @@ class Command(BaseCommand):
             if not batches:
                 break
             date = _nexthour(date)
-        #print batch
-        # batches = RefreshBatch.hourly((datetime(1970, 1, 1), datetime.now()))
-        # for i, batch in enumerate(batches):
-        #    print i, batch
 
 
 def _startdate():
