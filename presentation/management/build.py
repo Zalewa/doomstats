@@ -22,8 +22,7 @@ def _get_batches(incremental):
                 batches = list(batches[0:i])
                 batches.reverse()
                 return batches
-    else:
-        return list(RefreshBatch.objects.order_by("date").all())
+    return list(RefreshBatch.objects.order_by("date").all())
 
 
 def _process_batch(batch):
