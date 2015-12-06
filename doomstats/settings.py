@@ -84,7 +84,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'stats',
-    'googlecharts'
+    'googlecharts',
+    'presentation'
 )
 
 MIDDLEWARE_CLASSES = (
