@@ -1,8 +1,9 @@
 from .models import *
-from django.db.models import Count
+from django.db.models import Count, Avg
 from googlecharts.collections import Chart, Formatter
 from doomstats.timestuff import daterange_resolution
-from datetime import datetime
+from datetime import datetime, timedelta
+from presentation.models import BatchStatistics
 
 
 def general_table():
@@ -25,20 +26,14 @@ def general_table():
 
 
 def stats_daterange_table(daterange, engine=None):
-    batch_count = RefreshBatch.objects.filter(date__range=daterange).count()
+    counters = BatchStatistics.avg_in_daterange(engine, daterange)
     return Table(
         id="stats-daterange-table",
         header="Amounts in date range",
         rows=[
-            ("Collected batches:", batch_count),
-            ("Average server count:",
-             DecimalCell(
-                 Server.count_in_daterange(engine, daterange) / \
-                 float(max(1, batch_count)))),
-            ("Average player count:",
-             DecimalCell(
-                 Player.count_in_daterange(engine, daterange) / \
-                 float(max(1, batch_count))))
+            ("Collected batches:", RefreshBatch.objects.filter(date__range=daterange).count()),
+            ("Average server count:", DecimalCell(counters.server_count)),
+            ("Average player count:", DecimalCell(counters.human_player_count))
         ])
 
 
@@ -55,23 +50,12 @@ def players_chart(daterange, engine=None):
     rows = []
     for dateslice in dateslices:
         dateslice = timezone.localtime(dateslice, timezone.utc)
-        batch_filter = {
-            "date__year": dateslice.year,
-            "date__month": dateslice.month,
-            "date__day": dateslice.day
-        }
-        if resolution == "hour":
-            batch_filter["date__hour"] = dateslice.hour
-        batches = RefreshBatch.objects.filter(**batch_filter)
-        filter = {
-            "server__server__refresh_batch__in": batches,
-            "is_bot": False
-        }
-        if engine:
-            filter["server__server__engine"] = engine
-        count = Player.objects.filter(**filter).count()
-        rows.append((dateslice.strftime(dateformat),
-                     count / float(max(1, batches.count()))))
+        if resolution == "day":
+            nextdate = dateslice + timedelta(days=1)
+        elif resolution == "hour":
+            nextdate = dateslice + timedelta(hours=1)
+        count = BatchStatistics.avg_in_daterange(engine, (dateslice, nextdate))
+        rows.append((dateslice.strftime(dateformat), count.human_player_count))
     return Chart(
         id="players-chart", kind="LineChart",
         options={'title': 'Players per {0}'.format(resolution),
@@ -219,7 +203,10 @@ class DecimalCell(object):
         self.digits = digits
 
     def __str__(self):
-        return str("{0:." + str(self.digits) + "f}").format(self.number)
+        number = self.number
+        if number is None:
+            number = 0.0
+        return str("{0:." + str(self.digits) + "f}").format(number)
 
 
 class PercentageCell(object):
