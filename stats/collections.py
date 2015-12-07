@@ -39,23 +39,7 @@ def stats_daterange_table(daterange, engine=None):
 
 def players_chart(daterange, engine=None):
     resolution = daterange_resolution(daterange)
-    dateslices = RefreshBatch.slice(daterange, resolution)
-    if resolution == "day":
-        dateformat = "%Y-%m-%d %a"
-    elif resolution == "hour":
-        if dateslices[0].date() == dateslices.last().date():
-            dateformat = "%H:%M"
-        else:
-            dateformat = "%d %a %H:%M"
-    rows = []
-    for dateslice in dateslices:
-        dateslice = timezone.localtime(dateslice, timezone.utc)
-        if resolution == "day":
-            nextdate = dateslice + timedelta(days=1)
-        elif resolution == "hour":
-            nextdate = dateslice + timedelta(hours=1)
-        count = BatchStatistics.avg_in_daterange(engine, (dateslice, nextdate))
-        rows.append((dateslice.strftime(dateformat), count.human_player_count))
+    rows = _build_players_chart_data(daterange, engine)
     return Chart(
         id="players-chart", kind="LineChart",
         options={'title': 'Players per {0}'.format(resolution),
@@ -78,6 +62,30 @@ def players_chart(daterange, engine=None):
                     "fractionDigits": 2
                 })
         ])
+
+
+def _build_players_chart_data(daterange, engine):
+    resolution = daterange_resolution(daterange)
+    dateslices = RefreshBatch.slice(daterange, resolution)
+    if not dateslices:
+        return []
+    if resolution == "day":
+        dateformat = "%Y-%m-%d %a"
+    elif resolution == "hour":
+        if dateslices[0].date() == dateslices.last().date():
+            dateformat = "%H:%M"
+        else:
+            dateformat = "%d %a %H:%M"
+    rows = []
+    for dateslice in dateslices:
+        dateslice = timezone.localtime(dateslice, timezone.utc)
+        if resolution == "day":
+            nextdate = dateslice + timedelta(days=1)
+        elif resolution == "hour":
+            nextdate = dateslice + timedelta(hours=1)
+        count = BatchStatistics.avg_in_daterange(engine, (dateslice, nextdate))
+        rows.append((dateslice.strftime(dateformat), count.human_player_count))
+    return rows
 
 
 def wads_popularity_table(daterange, engine):
