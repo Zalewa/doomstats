@@ -3,6 +3,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from stats.management import serverdatarefinery
+from presentation.management.build import build_presentation
 import sys
 import subprocess
 import tempfile
@@ -21,6 +22,9 @@ class Command(BaseCommand):
         _errlog("putting data to database")
         serverdatarefinery.put_json_to_database(timezone.now(), data)
         _errlog("collecting completed {0}".format(_now()))
+        _errlog("building presentation")
+        build_presentation(incremental=True)
+        _errlog("completed building presentation {0}".format(_now()))
 
 
 def _errlog(what):
