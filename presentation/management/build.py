@@ -10,18 +10,25 @@ import sys
 
 def build_presentation(incremental=False):
     print >>sys.stderr, "Building presentation, incremental = {0}".format(incremental)
-    batches = _get_batches(incremental)
+    if incremental:
+        batches = _get_newest_not_stored_batches()
+    else:
+        batches = _get_all_batches()
     map(_process_batch, batches)
 
 
-def _get_batches(incremental):
-    if incremental:
-        batches = RefreshBatch.objects.order_by("-date").all()
-        for i, batch in enumerate(batches):
-            if _is_present(batch):
-                batches = list(batches[0:i])
-                batches.reverse()
-                return batches
+def _get_newest_not_stored_batches():
+    batches = RefreshBatch.objects.order_by("-date").all()
+    for i, batch in enumerate(batches):
+        if _is_already_stored(batch):
+            batches = list(batches[0:i])
+            break
+    batches = list(batches)
+    batches.reverse()
+    return batches
+
+
+def _get_all_batches():
     return list(RefreshBatch.objects.order_by("date").all())
 
 
@@ -30,7 +37,7 @@ def _process_batch(batch):
     _build_batch_statistics(batch)
 
 
-def _is_present(batch):
+def _is_already_stored(batch):
     return _has_batch_statistics(batch)
 
 
