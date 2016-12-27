@@ -1,9 +1,9 @@
 from .models import *
-from django.db.models import Count
 from googlecharts.collections import Chart, Formatter
 from doomstats.timestuff import daterange_resolution
 from datetime import datetime, timedelta
-from presentation.models import BatchStatistics, GameFileStatistics, ServerPopularity
+from presentation.models import BatchStatistics, GameFileStatistics, \
+    IwadPopularity, ServerPopularity
 
 
 def general_table():
@@ -124,23 +124,28 @@ def servers_popularity_table(daterange, engine):
 
 
 def iwad_popularity_chart(daterange, engine):
-    files = Iwad.objects.filter(
-        serverdata__server__refresh_batch__date__range=daterange,
-        serverdata__server__engine=engine).annotate(
-            num_players=Count('serverdata__player')).order_by('-num_players')
-    total_players = sum([ f.num_players for f in files ], 0)
+    iwads = IwadPopularity.top(engine, daterange)
+    total_players = sum([iwad["human_player_count"] for iwad in iwads], 0)
     if not total_players:
         return None
     rows = []
-    for f in files:
-        rows.append((f.name, _to_percent(f.num_players, total_players)))
-    height = 25 * files.count()
+    for iwad in iwads:
+        rows.append((iwad["iwad__name"],
+                     _to_percent(iwad["human_player_count"], total_players)))
+    # Some magic. Maybe there's a better way to
+    # appease Google Charts? If some margin is not
+    # left between the Chart/height and Chart/chartArea/height
+    # then horizontal axis label will not appear.
+    MIN_HEIGHT = 40
+    ROW_HEIGHT = 25
+    AXIS_LABEL_HEIGHT_MARGIN = ROW_HEIGHT
+    height = ROW_HEIGHT * len(rows)
     return Chart(
         id="iwad-popularity-chart", kind="BarChart",
         options={
             'title': 'IWAD popularity',
             'width': '100%',
-            'height': height,
+            'height': height + MIN_HEIGHT + AXIS_LABEL_HEIGHT_MARGIN,
             'legend': 'none',
             'vAxis': {
                 'maxTextLines': 1,
@@ -148,7 +153,7 @@ def iwad_popularity_chart(daterange, engine):
             'chartArea': {
                 'left': 100,
                 'top': 20,
-                'height': height - 40,
+                'height': max(MIN_HEIGHT, height - AXIS_LABEL_HEIGHT_MARGIN),
                 'width': '75%'
             }
         },

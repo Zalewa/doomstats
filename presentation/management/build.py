@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 from stats.models import RefreshBatch, Player, Server
 from presentation.models import BatchStatistics, GameFileStatistics, \
-    ServerPopularity
+    IwadPopularity, ServerPopularity
 
 from django.db import transaction
 from django.db.models import Count
@@ -15,6 +15,7 @@ def build_presentation(incremental=False):
     _BatchStatisticsBuilder().build(incremental)
     _GameFileStatisticsBuilder().build(incremental)
     _ServerPopularityBuilder().build(incremental)
+    _IwadPopularityBuilder().build(incremental)
 
 
 class _BatchBuilder(object):
@@ -115,6 +116,30 @@ class _ServerPopularityBuilder(_BatchBuilder):
             presentation.server = Server.objects.get(pk=server["pk"])
             presentation.human_player_count = server["total"]
             _persist([presentation])
+
+
+class _IwadPopularityBuilder(_BatchBuilder):
+    def _is_batch_stored(self, batch):
+        return IwadPopularity.objects.filter(batch=batch).exists()
+
+    def _build_batch_presentation(self, batch):
+        engines = {}
+        populated_servers = _populated_servers_query(batch).distinct()
+        for server in populated_servers:
+            engine = server.engine
+            engines.setdefault(engine.pk, {})
+            iwad = server.data.iwad
+            if iwad.pk not in engines[engine.pk]:
+                presentation = IwadPopularity()
+                presentation.batch = batch
+                presentation.engine = engine
+                presentation.iwad = iwad
+                engines[engine.pk][iwad.pk] = presentation
+            presentation = engines[engine.pk][iwad.pk]
+            human_players = server.data.player_set.filter(is_bot=False).count()
+            presentation.human_player_count += human_players
+        for engine in engines.values():
+            _persist(engine.values())
 
 
 def _get_newest_not_stored_batches(is_stored_check):

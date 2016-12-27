@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Sum, Avg
-from stats.models import RefreshBatch, Engine, GameFile, Server
+from stats.models import RefreshBatch, Engine, GameFile, Iwad, Server
 
 
 class BatchStatistics(models.Model):
@@ -101,6 +101,30 @@ class ServerPopularity(models.Model):
 
     def __format__(self, format_spec):
         return (u"engine={0.server.engine}, name={0.server.data.name}, "
+                "human_player_count={0.human_player_count}").format(self).encode("utf-8")
+
+
+class IwadPopularity(models.Model):
+    batch = models.ForeignKey(RefreshBatch)
+    engine = models.ForeignKey(Engine)
+    iwad = models.ForeignKey(Iwad)
+    human_player_count = models.IntegerField(default=0)
+
+    @classmethod
+    def top(cls, engine, daterange):
+        filters = {
+            "batch__date__range": daterange,
+            "engine": engine,
+            "human_player_count__gt": 0
+        }
+        query = cls.objects.filter(**filters)
+        query = query.values("iwad__name")
+        query = query.annotate(human_player_count=Avg("human_player_count"))
+        query = query.order_by('-human_player_count')
+        return query
+
+    def __format__(self, format_spec):
+        return (u"engine={0.engine}, name={0.iwad.name}, "
                 "human_player_count={0.human_player_count}").format(self).encode("utf-8")
 
 
