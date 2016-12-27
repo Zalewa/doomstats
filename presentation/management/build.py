@@ -51,12 +51,12 @@ class _BatchStatisticsBuilder(_BatchBuilder):
         engines = {}
         for server in batch.server_set.all():
             engine = server.engine
-            if engine.name not in engines:
+            if engine.pk not in engines:
                 presentation = BatchStatistics()
                 presentation.batch = batch
                 presentation.engine = engine
-                engines[engine.name] = presentation
-            presentation = engines[engine.name]
+                engines[engine.pk] = presentation
+            presentation = engines[engine.pk]
             presentation.server_count += 1
             presentation.human_player_count += Player.objects.filter(
                 server__server=server,
@@ -70,29 +70,27 @@ class _GameFileStatisticsBuilder(_BatchBuilder):
 
     def _build_batch_presentation(self, batch):
         engines = {}
-        populated_servers = batch.server_set.filter(
-            data__player__isnull=False,
-            data__player__is_bot=False).distinct()
+        populated_servers = _populated_servers_query(batch).distinct()
         for server in populated_servers:
             players = server.data.player_set.filter(is_bot=False)
             engine = server.engine
-            engines.setdefault(engine.name, {})
+            engines.setdefault(engine.pk, {})
             server_gamefiles = server.data.servergamefile_set
             this_server_gamefiles = set()
             for server_gamefile in server_gamefiles.all():
                 gamefile = server_gamefile.gamefile
-                if gamefile.name in this_server_gamefiles:
+                if gamefile.pk in this_server_gamefiles:
                     # Eliminate cases where one server
                     # reports the same file more than once.
                     continue
-                this_server_gamefiles.add(gamefile.name)
-                if gamefile.name not in engines[engine.name]:
+                this_server_gamefiles.add(gamefile.pk)
+                if gamefile.pk not in engines[engine.pk]:
                     presentation = GameFileStatistics()
                     presentation.batch = batch
                     presentation.engine = engine
                     presentation.gamefile = gamefile
-                    engines[engine.name][gamefile.name] = presentation
-                presentation = engines[engine.name][gamefile.name]
+                    engines[engine.pk][gamefile.pk] = presentation
+                presentation = engines[engine.pk][gamefile.pk]
                 presentation.human_player_count += players.count()
         presentations = []
         for engine in engines.itervalues():
@@ -106,9 +104,7 @@ class _ServerPopularityBuilder(_BatchBuilder):
 
     def _build_batch_presentation(self, batch):
         # This filter already returns 1 server entry per each player.
-        populated_servers = batch.server_set.filter(
-            data__player__isnull=False,
-            data__player__is_bot=False)
+        populated_servers = _populated_servers_query(batch)
         # All we need to do is count server entries grouped
         # by servers.
         server_population = populated_servers.values("pk").annotate(
@@ -140,3 +136,9 @@ def _persist(presentations):
     for presentation in presentations:
         print >>sys.stderr, "Saving presentation: {0}".format(presentation)
         presentation.save()
+
+
+def _populated_servers_query(batch):
+    return batch.server_set.filter(
+        data__player__isnull=False,
+        data__player__is_bot=False)
