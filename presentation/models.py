@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Sum, Avg
-from stats.models import RefreshBatch, Engine, GameFile
+from stats.models import RefreshBatch, Engine, GameFile, Server
 
 
 class BatchStatistics(models.Model):
@@ -78,6 +78,30 @@ class GameFileStatistics(models.Model):
     def __format__(self, format_spec):
         return ("engine={0.engine}, gamefile={0.gamefile}, "
                 "human_player_count={0.human_player_count}").format(self)
+
+
+class ServerPopularity(models.Model):
+    batch = models.ForeignKey(RefreshBatch)
+    server = models.ForeignKey(Server)
+    human_player_count = models.IntegerField(default=0)
+
+    @classmethod
+    def top(cls, engine, daterange, amount):
+        filters = {
+            "batch__date__range": daterange,
+            "server__engine": engine,
+            "human_player_count__gt": 0
+        }
+        query = cls.objects.filter(**filters)
+        query = query.values("server__address__host", "server__address__port",
+                             "server__data__name__name")
+        query = query.annotate(human_player_count=Avg("human_player_count"))
+        query = query.order_by('-human_player_count')[:amount]
+        return query
+
+    def __format__(self, format_spec):
+        return (u"engine={0.server.engine}, name={0.server.data.name}, "
+                "human_player_count={0.human_player_count}").format(self).encode("utf-8")
 
 
 class _Aggregate(object):

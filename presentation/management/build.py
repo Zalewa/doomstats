@@ -1,9 +1,11 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
-from stats.models import RefreshBatch, Player
-from presentation.models import BatchStatistics, GameFileStatistics
+from stats.models import RefreshBatch, Player, Server
+from presentation.models import BatchStatistics, GameFileStatistics, \
+    ServerPopularity
 
 from django.db import transaction
+from django.db.models import Count
 
 import sys
 
@@ -12,6 +14,7 @@ def build_presentation(incremental=False):
     print >>sys.stderr, "Building presentation, incremental = {0}".format(incremental)
     _BatchStatisticsBuilder().build(incremental)
     _GameFileStatisticsBuilder().build(incremental)
+    _ServerPopularityBuilder().build(incremental)
 
 
 class _BatchBuilder(object):
@@ -95,6 +98,27 @@ class _GameFileStatisticsBuilder(_BatchBuilder):
         for engine in engines.itervalues():
             presentations.extend(engine.values())
         _persist(presentations)
+
+
+class _ServerPopularityBuilder(_BatchBuilder):
+    def _is_batch_stored(self, batch):
+        return ServerPopularity.objects.filter(batch=batch).exists()
+
+    def _build_batch_presentation(self, batch):
+        # This filter already returns 1 server entry per each player.
+        populated_servers = batch.server_set.filter(
+            data__player__isnull=False,
+            data__player__is_bot=False)
+        # All we need to do is count server entries grouped
+        # by servers.
+        server_population = populated_servers.values("pk").annotate(
+            total=Count('pk'))
+        for server in server_population:
+            presentation = ServerPopularity()
+            presentation.batch = batch
+            presentation.server = Server.objects.get(pk=server["pk"])
+            presentation.human_player_count = server["total"]
+            _persist([presentation])
 
 
 def _get_newest_not_stored_batches(is_stored_check):

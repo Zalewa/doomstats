@@ -3,7 +3,7 @@ from django.db.models import Count
 from googlecharts.collections import Chart, Formatter
 from doomstats.timestuff import daterange_resolution
 from datetime import datetime, timedelta
-from presentation.models import BatchStatistics, GameFileStatistics
+from presentation.models import BatchStatistics, GameFileStatistics, ServerPopularity
 
 
 def general_table():
@@ -106,18 +106,14 @@ def wads_popularity_table(daterange, engine):
 
 
 def servers_popularity_table(daterange, engine):
-    servers = ServerData.objects.filter(
-        server__refresh_batch__date__range=daterange,
-        server__engine=engine).values("name__name").annotate(
-            total=Count('player')).filter(
-                total__gt=0).order_by('-total')[:20]
-    total_players = reduce(lambda a, b: a + b, [ s["total"] for s in servers ], 0)
+    servers = ServerPopularity.top(engine, daterange, amount=20)
+    total_players = reduce(lambda a, b: a + b, [ s["human_player_count"] for s in servers ], 0)
     rows = []
     if len(servers) > 0:
         for server in servers:
             rows.append(
-                (server["name__name"],
-                 PercentageCell(server["total"], total_players)))
+                (server["server__data__name__name"],
+                 PercentageCell(server["human_player_count"], total_players)))
     else:
         rows.append(("No servers had players in given time range.",))
     return Table(
