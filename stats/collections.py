@@ -1,9 +1,9 @@
 from .models import *
-from django.db.models import Count, Avg
+from django.db.models import Count
 from googlecharts.collections import Chart, Formatter
 from doomstats.timestuff import daterange_resolution
 from datetime import datetime, timedelta
-from presentation.models import BatchStatistics
+from presentation.models import BatchStatistics, GameFileStatistics
 
 
 def general_table():
@@ -89,16 +89,13 @@ def _build_players_chart_data(daterange, engine):
 
 
 def wads_popularity_table(daterange, engine):
-    files = GameFile.objects.filter(
-        servergamefile__server_data__server__refresh_batch__date__range=daterange,
-        servergamefile__server_data__server__engine=engine).annotate(
-            total=Count('servergamefile__server_data__player')).filter(
-                total__gt=0).order_by('-total')[:20]
-    total_players = reduce(lambda a, b: a + b, [ f.total for f in files ], 0)
+    files = GameFileStatistics.top(engine, daterange, amount=20)
+    total_players = reduce(lambda a, b: a + b, [ f['human_player_count'] for f in files ], 0)
     rows = []
     if len(files) > 0:
         for file in files:
-            rows.append((file.name, PercentageCell(file.total, total_players)))
+            rows.append((file['gamefile__name'],
+                         PercentageCell(file['human_player_count'], total_players)))
     else:
         rows.append(("No PWADs were played in given time range.",))
     return Table(
