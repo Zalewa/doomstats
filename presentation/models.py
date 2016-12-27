@@ -76,8 +76,8 @@ class GameFileStatistics(models.Model):
         return query
 
     def __format__(self, format_spec):
-        return ("engine={0.engine}, gamefile={0.gamefile}, "
-                "human_player_count={0.human_player_count}").format(self)
+        return (u"engine={0.engine}, gamefile={0.gamefile}, "
+                "human_player_count={0.human_player_count}").format(self).encode("utf-8")
 
 
 class ServerPopularity(models.Model):
