@@ -160,6 +160,11 @@ div#page-content > *:first-child {
 	margin-top: 0px;
 }
 
+.listing {
+	font-family: Verdana, sans;
+	font-size: 10pt;
+}
+
 /* Section: tables */
 div.data {
 	background-color: #eee;
@@ -171,6 +176,10 @@ div.data {
 
 th, td {
 	padding: 5px;
+}
+
+.data thead {
+	font-weight: bold;
 }
 
 thead tr {
@@ -190,6 +199,19 @@ tbody th {
 
 tbody td {
 	text-align: left;
+}
+
+
+.listing tr:hover {
+	background-color: #0ff; /* cyan */
+}
+
+.listing tr:nth-child(odd) {
+	background-color: #ddd;
+}
+
+.listing tr:nth-child(odd):hover {
+	background-color: #00f0f0; /* darker cyan */
 }
 
 /* Section: main menu */

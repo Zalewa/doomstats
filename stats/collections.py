@@ -102,7 +102,8 @@ def wads_popularity_table(daterange, engine):
         id="wads-popularity-table",
         header="WADs popularity",
         left_header=False,
-        rows=rows)
+        rows=rows,
+        body_css_class="listing")
 
 
 def servers_popularity_table(daterange, engine):
@@ -120,7 +121,8 @@ def servers_popularity_table(daterange, engine):
         id="servers-popularity-table",
         header="Servers popularity",
         left_header=False,
-        rows=rows)
+        rows=rows,
+        body_css_class="listing")
 
 
 def iwad_popularity_chart(daterange, engine):
@@ -175,11 +177,13 @@ def _first_batch():
 
 
 class Table(object):
-    def __init__(self, id=None, header=None, rows=None, left_header=True):
+    def __init__(self, id=None, header=None, rows=None, left_header=True,
+                 body_css_class=""):
         self.id = id
         self.header = header
         self.rows = rows
         self.left_header = left_header
+        self.body_css_class = body_css_class
         if not rows:
             self.rows = []
 
