@@ -1,22 +1,20 @@
 from django.db import connection
+from doomstats import settings
 from time import time
 from operator import add
 import re
 
+
 # http://stackoverflow.com/a/17777539
 class StatsMiddleware(object):
-
     def process_view(self, request, view_func, view_args, view_kwargs):
         '''
         In your base template, put this:
-        <div id="stats">
-        <!-- STATS: Total: %(total_time).2fs Python: %(python_time).2fs DB: %(db_time).2fs Queries: %(db_queries)d ENDSTATS -->
-        </div>
+        <p>
+        <!-- DEBUG STATS: Total: %(total_time).2fs Python: %(python_time).2fs DB: %(db_time).2fs Queries: %(db_queries)d ENDSTATS -->
+        <!-- RELEASE STATS: Page prepared in: %(total_time).2fs. ENDSTATS -->
+        </p>
         '''
-
-        # Uncomment the following if you want to get stats on DEBUG=True only
-        #if not settings.DEBUG:
-        #    return None
 
         # get number of db queries before we do anything
         n = len(connection.queries)
@@ -47,7 +45,7 @@ class StatsMiddleware(object):
         # replace the comment if found
         if response and response.content:
             s = response.content
-            regexp = re.compile(r'(?P<cmt><!--\s*STATS:(?P<fmt>.*?)ENDSTATS\s*-->)')
+            regexp = self.__template_matcher()
             match = regexp.search(s)
             if match:
                 s = (s[:match.start('cmt')] +
@@ -56,3 +54,9 @@ class StatsMiddleware(object):
                 response.content = s
 
         return response
+
+    def __template_matcher(self):
+        if settings.DEBUG:
+            return re.compile(r'(?P<cmt><!--\s*DEBUG STATS:(?P<fmt>.*?)ENDSTATS\s*-->)')
+        else:
+            return re.compile(r'(?P<cmt><!--\s*RELEASE STATS:(?P<fmt>.*?)ENDSTATS\s*-->)')
