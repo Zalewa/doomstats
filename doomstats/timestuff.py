@@ -1,23 +1,39 @@
 from datetime import datetime, timedelta
 from django.utils import timezone
-import os
 
 
-class ParseError(Exception):
+class ParseError(ValueError):
     pass
 
 
 def parse_rfc3339_stamp(stamp, splitter='T'):
+    stamp, tz = _split_tz(stamp)
+    date = datetime.strptime(stamp, '%Y-%m-%d{0}%H:%M:%S'.format(splitter))
+    date = date.replace(tzinfo=parse_timezone_offset(tz))
+    return date
+
+
+def parse_batch_stamp(stamp):
+    stamp, tz = _split_tz(stamp)
+    date = datetime.strptime(stamp, '%Y-%m-%d_%H-%M')
+    date = date.replace(tzinfo=parse_timezone_offset(tz))
+    return date
+
+
+def _split_tz(stamp):
+    tz_index = _get_tz_offset(stamp)
+    tz = stamp[tz_index:]
+    stamp = stamp[:tz_index]
+    return stamp, tz
+
+
+def _get_tz_offset(stamp):
     tz_index = stamp.rfind("+")
     if tz_index < 0:
         tz_index = stamp.rfind("-")
     if tz_index < 0:
         raise ParseError("no TZ offset")
-    tz = stamp[tz_index:]
-    stamp = stamp[:tz_index]
-    date = datetime.strptime(stamp, '%Y-%m-%d{0}%H:%M:%S'.format(splitter))
-    date = date.replace(tzinfo=parse_timezone_offset(tz))
-    return date
+    return tz_index
 
 
 def parse_timezone_offset(offset):
@@ -42,12 +58,16 @@ def daterange_resolution(daterange):
 
 
 def _timezone_offset(offset):
-    hours, minutes = offset.split(":")
-    if hours[0] == '+':
+    if offset[0] == '+':
         modifier = 1
-    elif hours[0] == '-':
+    elif offset[0] == '-':
         modifier = -1
     else:
         raise ParseError('no time offset sign')
-    hours = hours[1:]
+    offset = offset[1:]
+    if ':' in offset:
+        hours, minutes = offset.split(":")
+    else:
+        hours = offset[:3]
+        minutes = offset[3:]
     return modifier * int(hours) * 60 + int(minutes)

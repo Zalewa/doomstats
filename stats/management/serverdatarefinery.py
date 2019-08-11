@@ -1,5 +1,6 @@
 from stats.models import *
 from django.db import transaction
+import base64
 import json
 
 
@@ -9,6 +10,87 @@ def put_json_to_database(batch_date, data):
 
 def put_data_to_database(batch_date, data):
     _Servers(batch_date, data["servers"]).put()
+
+
+_SERVER_RELATED = [
+    'address', 'data', 'engine', 'response',
+    'data__game_mode', 'data__engine_version',
+    'data__iwad', 'data__mapname', 'data__name',
+    'data__skill'
+]
+
+
+def get_database_as_data(refresh_batch):
+    servers = []
+    for server in Server.objects.filter(
+            refresh_batch=refresh_batch).prefetch_related(*_SERVER_RELATED):
+        sdata = server.data
+        sdata_dict = None
+        if sdata:
+            dmflags = [
+                {
+                    "name": flags.dmflags.name,
+                    "value": flags.value
+                } for flags in ServerDmflagsGroup.objects.filter(server_data=sdata).prefetch_related('dmflags')
+            ]
+            modifiers = [
+                {
+                    "name": mod.cvar.name,
+                    "command": mod.cvar.command,
+                    "value": mod.value
+                } for mod in ServerModifier.objects.filter(server_data=sdata).prefetch_related('cvar')
+            ]
+            game_files = [
+                {
+                    "name": gf.gamefile.name,
+                    "optional": gf.is_optional
+                } for gf in ServerGameFile.objects.filter(server_data=sdata).prefetch_related('gamefile')
+            ]
+            players = [
+                {
+                    "isBot": player.is_bot,
+                    "isSpectating": player.is_spectating,
+                    "isTeamlessBot": player.is_bot and player.team == 255,
+                    "name": base64.b64encode(player.name.name),
+                    "nameClean": player.name.name,
+                    "ping": player.ping,
+                    "score": player.score,
+                    "teamNumber": player.team
+                } for player in Player.objects.filter(server=sdata).prefetch_related('name')
+            ]
+            sdata_dict = {
+                "dmflags": dmflags,
+                "email": "",
+                "gameMode": {
+                    "name": sdata.game_mode.name,
+                    "isTeamGame": sdata.game_mode.is_team_game
+                },
+                "gameVersion": sdata.engine_version.version,
+                "isSecure": sdata.is_secure,
+                "iwad": sdata.iwad.name,
+                "map": sdata.mapname.name,
+                "maxClients": sdata.max_clients,
+                "maxPlayers": sdata.max_players,
+                "modifiers": modifiers,
+                "name": sdata.name.name,
+                "players": players,
+                "pwads": game_files,
+                "requiresConnectPassword": sdata.requires_connect_password,
+                "requiresJoinPassword": sdata.requires_join_password,
+                "scoreLimit": sdata.score_limit,
+                "skill": sdata.skill.level,
+                "timeLimit": sdata.time_limit
+            }
+        server_dict = {
+            "address": server.address.host,
+            "engineName": server.engine.name,
+            "known": sdata is not None,
+            "port": server.address.port,
+            "response": server.response.name,
+        }
+        server_dict.update(sdata_dict or {})
+        servers.append(server_dict)
+    return {"servers": servers}
 
 
 class _Servers(object):
