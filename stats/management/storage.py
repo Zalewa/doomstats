@@ -3,7 +3,7 @@ from doomstats.timestuff import parse_batch_stamp
 import os
 
 
-def store_filename(month_date):
+def archive_filename(month_date):
     return month_date.strftime("%Y-%m.tar.bz2")
 
 
