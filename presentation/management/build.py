@@ -1,11 +1,11 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
-from stats.models import RefreshBatch, Player, Server
+from stats.management import storage
+from stats.models import Engine, GameFile, Iwad, Name, RefreshBatch
 from presentation.models import BatchStatistics, GameFileStatistics, \
     IwadPopularity, ServerPopularity
 
 from django.db import transaction
-from django.db.models import Count
 
 import sys
 
@@ -25,7 +25,8 @@ class _BatchBuilder(object):
                 is_stored_check=self._is_batch_stored)
         else:
             batches = _get_all_batches()
-        map(self.__process_batch, batches)
+        for batch in batches:
+            self.__process_batch(batch)
 
     def _is_batch_stored(self, batch):
         raise NotImplementedError()
@@ -50,18 +51,16 @@ class _BatchStatisticsBuilder(_BatchBuilder):
 
     def _build(self, batch):
         engines = {}
-        for server in batch.server_set.all():
-            engine = server.engine
-            if engine.pk not in engines:
+        for server in _servers(batch):
+            engine = server["engineName"]
+            if engine not in engines:
                 presentation = BatchStatistics()
                 presentation.batch = batch
-                presentation.engine = engine
-                engines[engine.pk] = presentation
-            presentation = engines[engine.pk]
+                presentation.engine = Engine.objects.filter(name__iexact=engine).first()
+                engines[engine] = presentation
+            presentation = engines[engine]
             presentation.server_count += 1
-            presentation.human_player_count += Player.objects.filter(
-                server__server=server,
-                is_bot=False).count()
+            presentation.human_player_count += len(_human_players(server))
         return engines.values()
 
 
@@ -71,28 +70,28 @@ class _GameFileStatisticsBuilder(_BatchBuilder):
 
     def _build_batch_presentation(self, batch):
         engines = {}
-        populated_servers = _populated_servers_query(batch).distinct()
+        populated_servers = _populated_servers(batch)
         for server in populated_servers:
-            players = server.data.player_set.filter(is_bot=False)
-            engine = server.engine
-            engines.setdefault(engine.pk, {})
-            server_gamefiles = server.data.servergamefile_set
+            players = _human_players(server)
+            engine = server["engineName"]
+            engines.setdefault(engine, {})
+            server_gamefiles = server["pwads"]
             this_server_gamefiles = set()
-            for server_gamefile in server_gamefiles.all():
-                gamefile = server_gamefile.gamefile
-                if gamefile.pk in this_server_gamefiles:
+            for server_gamefile in server_gamefiles:
+                gamefile = server_gamefile["name"]
+                if gamefile in this_server_gamefiles:
                     # Eliminate cases where one server
                     # reports the same file more than once.
                     continue
-                this_server_gamefiles.add(gamefile.pk)
-                if gamefile.pk not in engines[engine.pk]:
+                this_server_gamefiles.add(gamefile)
+                if gamefile not in engines[engine]:
                     presentation = GameFileStatistics()
                     presentation.batch = batch
-                    presentation.engine = engine
-                    presentation.gamefile = gamefile
-                    engines[engine.pk][gamefile.pk] = presentation
-                presentation = engines[engine.pk][gamefile.pk]
-                presentation.human_player_count += players.count()
+                    presentation.engine = Engine.objects.filter(name__iexact=engine).first()
+                    presentation.gamefile = GameFile.objects.filter(name__iexact=gamefile).first()
+                    engines[engine][gamefile] = presentation
+                presentation = engines[engine][gamefile]
+                presentation.human_player_count += len(players)
         presentations = []
         for engine in engines.itervalues():
             presentations.extend(engine.values())
@@ -104,17 +103,17 @@ class _ServerPopularityBuilder(_BatchBuilder):
         return ServerPopularity.objects.filter(batch=batch).exists()
 
     def _build_batch_presentation(self, batch):
-        # This filter already returns 1 server entry per each player.
-        populated_servers = _populated_servers_query(batch)
-        # All we need to do is count server entries grouped
-        # by servers.
-        server_population = populated_servers.values("pk").annotate(
-            total=Count('pk'))
-        for server in server_population:
+        engines = {}
+        for server in _populated_servers(batch):
+            engine = server["engineName"]
+            if engine not in engines:
+                engines[engine] = Engine.objects.filter(name__iexact=engine).first()
+
             presentation = ServerPopularity()
             presentation.batch = batch
-            presentation.server = Server.objects.get(pk=server["pk"])
-            presentation.human_player_count = server["total"]
+            presentation.engine = engines[engine]
+            presentation.server_name = Name.objects.get_or_create(name=server["name"])[0]
+            presentation.human_player_count = len(_human_players(server))
             _persist([presentation])
 
 
@@ -124,20 +123,19 @@ class _IwadPopularityBuilder(_BatchBuilder):
 
     def _build_batch_presentation(self, batch):
         engines = {}
-        populated_servers = _populated_servers_query(batch).distinct()
-        for server in populated_servers:
-            engine = server.engine
-            engines.setdefault(engine.pk, {})
-            iwad = server.data.iwad
-            if iwad.pk not in engines[engine.pk]:
+        iwads = {iwad.name.lower(): iwad for iwad in Iwad.objects.all()}
+        for server in _populated_servers(batch):
+            engine = server["engineName"]
+            engines.setdefault(engine, {})
+            iwad = iwads[server["iwad"].lower()]
+            if iwad.pk not in engines[engine]:
                 presentation = IwadPopularity()
                 presentation.batch = batch
-                presentation.engine = engine
+                presentation.engine = Engine.objects.filter(name__iexact=engine).first()
                 presentation.iwad = iwad
-                engines[engine.pk][iwad.pk] = presentation
-            presentation = engines[engine.pk][iwad.pk]
-            human_players = server.data.player_set.filter(is_bot=False).count()
-            presentation.human_player_count += human_players
+                engines[engine][iwad.pk] = presentation
+            presentation = engines[engine][iwad.pk]
+            presentation.human_player_count += len(_human_players(server))
         for engine in engines.values():
             _persist(engine.values())
 
@@ -163,7 +161,14 @@ def _persist(presentations):
         presentation.save()
 
 
-def _populated_servers_query(batch):
-    return batch.server_set.filter(
-        data__player__isnull=False,
-        data__player__is_bot=False)
+def _populated_servers(batch):
+    return [s for s in _servers(batch)
+            if s.get("players") and _human_players(s)]
+
+
+def _human_players(server):
+    return [p for p in server.get("players", []) if not p["isBot"]]
+
+
+def _servers(batch):
+    return storage.read_batch(batch.date)["servers"]

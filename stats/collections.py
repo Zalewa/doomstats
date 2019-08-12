@@ -119,7 +119,7 @@ def servers_popularity_table(daterange, engine):
     if len(servers) > 0:
         for server in servers:
             rows.append(
-                (server["server__data__name__name"],
+                (server["server_name__name"],
                  PercentageCell(server["human_player_count"], total_players)))
     else:
         rows.append(("No servers had players in given time range.",))

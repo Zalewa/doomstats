@@ -1,3 +1,4 @@
+from stats.management import storage
 from stats.models import (
     Address, Cvar, DmflagsGroup, Engine, EngineVersion, Game, GameFile,
     GameMode, Iwad, Name, Player, RefreshBatch, Server, ServerData,
@@ -13,6 +14,8 @@ def put_json_to_database(batch_date, data):
 
 
 def put_data_to_database(batch_date, data):
+    with open(storage.batch_file(batch_date), "w") as f:
+        json.dump(data, f)
     _Servers(batch_date, data["servers"]).put()
 
 
