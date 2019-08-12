@@ -16,7 +16,15 @@ _SERVER_RELATED = [
     'address', 'data', 'engine', 'response',
     'data__game_mode', 'data__engine_version',
     'data__iwad', 'data__mapname', 'data__name',
-    'data__skill'
+    'data__skill',
+    'data__serverdmflagsgroup_set',
+    'data__serverdmflagsgroup_set__dmflags',
+    'data__servermodifier_set',
+    'data__servermodifier_set__cvar',
+    'data__servergamefile_set',
+    'data__servergamefile_set__gamefile',
+    'data__player_set',
+    'data__player_set__name'
 ]
 
 
@@ -31,20 +39,20 @@ def get_database_as_data(refresh_batch):
                 {
                     "name": flags.dmflags.name,
                     "value": flags.value
-                } for flags in ServerDmflagsGroup.objects.filter(server_data=sdata).prefetch_related('dmflags')
+                } for flags in sdata.serverdmflagsgroup_set.all()
             ]
             modifiers = [
                 {
                     "name": mod.cvar.name,
                     "command": mod.cvar.command,
                     "value": mod.value
-                } for mod in ServerModifier.objects.filter(server_data=sdata).prefetch_related('cvar')
+                } for mod in sdata.servermodifier_set.all()
             ]
             game_files = [
                 {
                     "name": gf.gamefile.name,
                     "optional": gf.is_optional
-                } for gf in ServerGameFile.objects.filter(server_data=sdata).prefetch_related('gamefile')
+                } for gf in sdata.servergamefile_set.all()
             ]
             players = [
                 {
@@ -56,7 +64,7 @@ def get_database_as_data(refresh_batch):
                     "ping": player.ping,
                     "score": player.score,
                     "teamNumber": player.team
-                } for player in Player.objects.filter(server=sdata).prefetch_related('name')
+                } for player in sdata.player_set.all()
             ]
             sdata_dict = {
                 "dmflags": dmflags,
