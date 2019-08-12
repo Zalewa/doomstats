@@ -1,13 +1,24 @@
-from .models import *
-from googlecharts.collections import Chart, Formatter
+from .models import RefreshBatch
 from doomstats.timestuff import daterange_resolution
-from datetime import datetime, timedelta
 from presentation.models import BatchStatistics, GameFileStatistics, \
     IwadPopularity, ServerPopularity
+
+from django.utils import timezone
+from googlecharts.collections import Chart, Formatter
+
+from datetime import datetime, timedelta
 
 
 def general_table():
     batch_count = RefreshBatch.objects.count()
+    if batch_count > 0:
+        daterange = (_first_batch().date, _last_batch().date)
+        counters = BatchStatistics.avg_in_daterange(None, daterange)
+        avg_servers = counters.server_count
+        avg_players = counters.human_player_count
+    else:
+        avg_servers = 0
+        avg_players = 0
     return Table(
         id="general-table",
         header="All-time stats",
@@ -15,13 +26,8 @@ def general_table():
             ("Data collected since:", DateCell(
                 _first_batch().date, "%Y-%m-%d %H:%M:%S")),
             ("Collected batches:", batch_count),
-            ("Average all-time server count:",
-             DecimalCell(
-                 Server.objects.count() / float(max(1, batch_count)))),
-            ("Average all-time player count:",
-             DecimalCell(
-                 Player.objects.filter(is_bot=False).count() \
-                 / float(max(1, batch_count))))
+            ("Average all-time server count:", DecimalCell(avg_servers)),
+            ("Average all-time player count:", DecimalCell(avg_players))
         ])
 
 
@@ -90,7 +96,7 @@ def _build_players_chart_data(daterange, engine):
 
 def wads_popularity_table(daterange, engine):
     files = GameFileStatistics.top(engine, daterange, amount=20)
-    total_players = reduce(lambda a, b: a + b, [ f['human_player_count'] for f in files ], 0)
+    total_players = reduce(lambda a, b: a + b, [f['human_player_count'] for f in files], 0)
     rows = []
     if len(files) > 0:
         for file in files:
@@ -108,7 +114,7 @@ def wads_popularity_table(daterange, engine):
 
 def servers_popularity_table(daterange, engine):
     servers = ServerPopularity.top(engine, daterange, amount=20)
-    total_players = reduce(lambda a, b: a + b, [ s["human_player_count"] for s in servers ], 0)
+    total_players = reduce(lambda a, b: a + b, [s["human_player_count"] for s in servers], 0)
     rows = []
     if len(servers) > 0:
         for server in servers:
@@ -173,6 +179,11 @@ def iwad_popularity_chart(daterange, engine):
 
 def _first_batch():
     return RefreshBatch.objects.order_by("date").first() or \
+        RefreshBatch(date=datetime.fromtimestamp(0))
+
+
+def _last_batch():
+    return RefreshBatch.objects.order_by("-date").first() or \
         RefreshBatch(date=datetime.fromtimestamp(0))
 
 
