@@ -1,4 +1,8 @@
-from stats.models import *
+from stats.models import (
+    Address, Cvar, DmflagsGroup, Engine, EngineVersion, Game, GameFile,
+    GameMode, Iwad, Name, Player, RefreshBatch, Server, ServerData,
+    ServerDmflagsGroup, ServerGameFile, ServerModifier, ServerResponse,
+    Skill)
 from django.db import transaction
 import base64
 import json

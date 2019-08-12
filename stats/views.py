@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-from .models import *
-from .collections import *
+from .models import Engine, RefreshBatch
+from .collections import (
+    general_table, stats_daterange_table, players_chart,
+    wads_popularity_table, iwad_popularity_chart,
+    servers_popularity_table)
 from datetime import timedelta, datetime
 from doomstats.timestuff import day_range
 import json
-import time
 
 
 def front_page(request):
